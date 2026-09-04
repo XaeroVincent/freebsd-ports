@@ -25,9 +25,7 @@ EXTRA_PATCHES=	${GENTOO_PATCHES_PREFIX}-ipv6_upnp.patch:-p1 \
 USE_GITHUB=	yes
 
 .if !defined (MASTERDIR)
-LIB_DEPENDS=	libboost_thread.so:devel/boost-libs
-
-USES=		cmake gettext compiler:c++11-lib ssl
+USES=		cmake gettext iconv compiler:c++11-lib ssl
 USE_LDCONFIG=	yes
 
 OPTIONS_DEFINE=	LUA PCRE IDN DHT MINIUPNP
