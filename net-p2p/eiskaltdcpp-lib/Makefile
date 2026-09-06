@@ -15,6 +15,8 @@ LICENSE_FILE=	${WRKSRC}/LICENSE
 DEPRECATED=	Last release 5 years ago, uses Qt 5, does not build with CMake 4
 EXPIRATION_DATE=2026-11-30
 
+BUILD_DEPENDS=	boost-libs>=0:devel/boost-libs
+
 GENTOO_PATCHES_PREFIX=	${FILESDIR}/gentoo/${PORTNAME}-${PORTVERSION}
 EXTRA_PATCHES=	${GENTOO_PATCHES_PREFIX}-ipv6_upnp.patch:-p1 \
 		${GENTOO_PATCHES_PREFIX}-miniupnpc1.patch:-p1 \
