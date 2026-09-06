@@ -14,10 +14,8 @@ LICENSE=	GPLv3
 DEPRECATED=	Does not build with CMake 4
 EXPIRATION_DATE=2026-11-30
 
-BROKEN_aarch64=		invokes x86 assembler
-BROKEN_armv6=		invokes x86 assembler
-BROKEN_armv7=		invokes x86 assembler
-BROKEN_riscv64=		invokes x86 assembler
+ONLY_FOR_ARCHS=	amd64 i386
+ONLY_FOR_ARCHS_REASON=	invokes x86 assembler
 
 USES=		compiler:c11 cmake ncurses
 USE_CXXSTD=	gnu++98
