@@ -1,8 +1,8 @@
 PORTNAME=	lua-resty-openssl
-DISTVERSION=	1.1.0
+DISTVERSION=	1.9.0
 CATEGORIES=	security
 
-MAINTAINER=	netchild@FreeBSD.org
+MAINTAINER=	ports@FreeBSD.org
 COMMENT=	FFI-based OpenSSL binding for OpenResty / ngx_lua
 WWW=		https://github.com/fffonion/lua-resty-openssl
 
