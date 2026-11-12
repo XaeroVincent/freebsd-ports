@@ -723,6 +723,7 @@
     SUBDIR += openmortal
     SUBDIR += openmsx
     SUBDIR += openmw
+    SUBDIR += opennow
     SUBDIR += openomf
     SUBDIR += openra
     SUBDIR += openrct2
