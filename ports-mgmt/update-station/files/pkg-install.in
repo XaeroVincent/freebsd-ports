@@ -1,0 +1,23 @@
+#!/bin/sh
+
+case ${2} in
+  (POST-INSTALL)
+    if [ ! -f "/var/lib/freebsd-update/shm_to_tmp" ]; then
+      sed -i "" 's#/compat/linux/dev/shm#/tmp#g' /etc/fstab
+      mkdir -p /var/lib/freebsd-update
+      touch /var/lib/freebsd-update/shm_to_tmp
+    fi
+    # make sure that /etc/machine-id exist for dbus and lightdm work properly.
+    if [ ! -f "/etc/machine-id" ] ; then
+      dbus-uuidgen --ensure
+      cp /var/lib/dbus/machine-id /etc/machine-id
+    fi
+    # /xdrivers is only needed on the live media.
+    if [ -d "/xdrivers" ] ; then
+      rm -rf /xdrivers
+    fi
+    if [ -f "%%PREFIX%%/etc/pkg/repos/XDrivers.conf" ] ; then
+      rm -f %%PREFIX%%/etc/pkg/repos/XDrivers.conf
+    fi
+    ;;
+esac

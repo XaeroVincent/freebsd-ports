@@ -1,0 +1,19 @@
+--- src/pkg_to_reinstall.orig	2026-11-07 05:58:14.000000000 -0800
++++ src/pkg_to_reinstall	2026-11-10 17:06:19.217066000 -0800
+@@ -23,6 +23,8 @@ devctl-jail-kmod
+ cx88
+ dahdi-kmod26
+ devctl-jail-kmod
++drm-612-kmod
++drm-66-kmod
+ drm-61-kmod
+ drm-515-kmod
+ drm-kmod
+@@ -173,6 +175,7 @@ nvidia-driver-470
+ nvidia-driver-340
+ nvidia-driver-390
+ nvidia-driver-470
++nvidia-driver-580
+ nvidia-secondary-driver
+ nvidia-secondary-driver-390
+ nvidia-settings
