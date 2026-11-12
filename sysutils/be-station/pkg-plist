@@ -1,0 +1,5 @@
+bin/be-station
+etc/sudoers.d/be-station
+share/applications/be-station.desktop
+share/locale/ru/LC_MESSAGES/be-station.mo
+share/locale/zh_CN/LC_MESSAGES/be-station.mo
