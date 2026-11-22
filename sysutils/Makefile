@@ -300,6 +300,7 @@
     SUBDIR += devstat
     SUBDIR += devtui
     SUBDIR += dfc
+    SUBDIR += dfs
     SUBDIR += di
     SUBDIR += diffoci
     SUBDIR += digdag
@@ -665,6 +666,7 @@
     SUBDIR += leaf
     SUBDIR += leaves
     SUBDIR += ledit
+    SUBDIR += legion
     SUBDIR += less
     SUBDIR += lfm
     SUBDIR += libcdio
@@ -1313,6 +1315,7 @@
     SUBDIR += rubygem-ohai-gitlab
     SUBDIR += rubygem-ohai18
     SUBDIR += rubygem-openbolt
+    SUBDIR += rubygem-openbolt9
     SUBDIR += rubygem-openfact
     SUBDIR += rubygem-openvoxserver-ca
     SUBDIR += rubygem-parallel
