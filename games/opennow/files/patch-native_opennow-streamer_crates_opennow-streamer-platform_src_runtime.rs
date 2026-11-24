@@ -156,7 +156,7 @@
                      let linux_hardware =
                          active.as_ref().is_some_and(ActiveOutput::is_linux_hardware);
                      let result = if let Some(output) = active.as_mut() {
-@@ -728,9 +728,9 @@
+@@ -728,12 +728,17 @@
                      } else {
                          Ok(())
                      };
@@ -168,7 +168,15 @@
                      if linux_hardware && let Err(reason) = &result {
                          let replacement =
                              retry_software_output(crate::HARDWARE_ONLY, reason.clone(), || {
-@@ -873,7 +873,7 @@
++                                // SDL allows one event pump per process: release the failed
++                                // output's before the replacement asks for its own.
++                                if let Some(current) = active.as_mut() {
++                                    current.release_event_pump();
++                                }
+                                 initialize_output(
+                                     Arc::clone(&self.output),
+                                     Some(&new_surface),
+@@ -873,11 +878,16 @@
                          output.update_cursor(&update.bytes);
                      }
                  }
@@ -177,7 +185,16 @@
                  Ok(HostCommand::FallbackLinux { reason }) => {
                      let replacement =
                          retry_software_output(crate::HARDWARE_ONLY, reason.clone(), || {
-@@ -1114,7 +1114,7 @@
+                             self.linux_software_fallback.store(true, Ordering::Release);
++                            // SDL allows one event pump per process: release the failed
++                            // output's before the replacement asks for its own.
++                            if let Some(current) = active.as_mut() {
++                                current.release_event_pump();
++                            }
+                             initialize_output(
+                                 Arc::clone(&self.output),
+                                 surface.as_ref(),
+@@ -1114,13 +1124,16 @@
                                  }
                              }
                          }
@@ -186,7 +203,16 @@
                          if output.is_linux_hardware() {
                              let fallback = retry_software_output(
                                  crate::HARDWARE_ONLY,
-@@ -1170,9 +1170,9 @@
+                                 message.clone(),
+                                 || {
+                                     output.stop();
++                                    // SDL allows one event pump per process: release the failed
++                                    // output's before the replacement asks for its own.
++                                    output.release_event_pump();
+                                     initialize_output(
+                                         Arc::clone(&self.output),
+                                         surface.as_ref(),
+@@ -1170,9 +1183,9 @@
  pub fn create_runtime() -> Result<(MainThreadHost, MediaRuntime), String> {
      ensure_macos_main_thread()?;
      let use_macos_hardware = Arc::new(AtomicBool::new(use_hardware_backend()));
@@ -198,7 +224,7 @@
      if crate::HARDWARE_ONLY
          && (matches!(linux_selection.path, LinuxVideoPath::Software)
              || !linux_selection.use_vulkan_output)
-@@ -1186,7 +1186,7 @@
+@@ -1186,7 +1199,7 @@
                  .unwrap_or("hardware Vulkan presentation is unavailable")
          ));
      }
@@ -207,7 +233,7 @@
      let linux_software_fallback = Arc::new(AtomicBool::new(matches!(
          linux_selection.path,
          LinuxVideoPath::Software
-@@ -1204,9 +1204,9 @@
+@@ -1204,9 +1217,9 @@
              use_macos_hardware: Arc::clone(&use_macos_hardware),
              #[cfg(target_os = "windows")]
              windows_bridge: Arc::clone(&windows_bridge),
@@ -219,7 +245,7 @@
              linux_software_fallback: Arc::clone(&linux_software_fallback),
          },
          MediaRuntime {
-@@ -1217,9 +1217,9 @@
+@@ -1217,9 +1230,9 @@
              use_hardware: use_macos_hardware,
              #[cfg(target_os = "windows")]
              windows_bridge,
@@ -231,7 +257,7 @@
              linux_software_fallback,
              mode: MediaRuntimeMode::Standalone,
          },
-@@ -1296,7 +1296,7 @@
+@@ -1296,7 +1309,7 @@
                          }
                          HostCommand::AudioDevices(request) => {
                              let reply = &request.reply;
@@ -240,7 +266,7 @@
                              let devices = opennow_streamer_platform_linux::audio_output_devices()
                                  .map(|devices| {
                                      devices
-@@ -1323,7 +1323,7 @@
+@@ -1323,7 +1336,7 @@
                                  })
                                  .map_err(|error| error.to_string());
                              #[cfg(not(any(
@@ -249,7 +275,7 @@
                                  target_os = "windows",
                                  target_os = "macos",
                                  test
-@@ -1383,7 +1383,7 @@
+@@ -1383,7 +1396,7 @@
              host_output.stop_microphone();
              drop(microphone);
          });
@@ -258,7 +284,7 @@
      let linux_selection = crate::linux_backend::select_video_path();
      MediaRuntime {
          commands,
-@@ -1393,9 +1393,9 @@
+@@ -1393,9 +1406,9 @@
          use_hardware: Arc::new(AtomicBool::new(true)),
          #[cfg(target_os = "windows")]
          windows_bridge: Arc::new(WindowsBridge::new()),
@@ -270,7 +296,7 @@
          linux_software_fallback: Arc::new(AtomicBool::new(false)),
          mode: MediaRuntimeMode::Embedded { frames, config },
      }
-@@ -1416,9 +1416,9 @@
+@@ -1416,9 +1429,9 @@
  #[cfg(feature = "test-runtime")]
  pub fn create_test_runtime() -> (TestMediaRuntimeHost, MediaRuntime) {
      let use_macos_hardware = Arc::new(AtomicBool::new(false));
@@ -282,7 +308,7 @@
      let linux_software_fallback = Arc::new(AtomicBool::new(matches!(
          linux_selection.path,
          LinuxVideoPath::Software
-@@ -1469,7 +1469,7 @@
+@@ -1469,7 +1482,7 @@
                      HostCommand::ConfigureMacAv1 { reply, .. } => {
                          let _ = reply.send(Err("test media runtime has no decoder".to_owned()));
                      }
@@ -291,7 +317,7 @@
                      HostCommand::FallbackLinux { .. } => {}
                      HostCommand::Shutdown => break,
                  }
-@@ -1488,9 +1488,9 @@
+@@ -1488,9 +1501,9 @@
              use_hardware: use_macos_hardware,
              #[cfg(target_os = "windows")]
              windows_bridge,
@@ -303,7 +329,7 @@
              linux_software_fallback,
              mode: MediaRuntimeMode::Test,
          },
-@@ -1647,7 +1647,7 @@
+@@ -1647,7 +1660,7 @@
          assert_eq!(attempts.get(), 2);
      }
  
@@ -312,7 +338,7 @@
      #[test]
      fn hardware_only_runtime_rejects_explicit_software_settings_before_startup() {
          let (_graphics, frames) = crate::RenderThreadGraphics::new(|| {});
-@@ -1981,7 +1981,7 @@
+@@ -1981,7 +1994,7 @@
          runtime.shutdown();
      }
  
@@ -321,7 +347,7 @@
      #[test]
      fn hdr_444_without_shared_vulkan_device_never_falls_back_to_cpu() {
          let (_graphics, frames) = crate::RenderThreadGraphics::new(|| {});
-@@ -2153,7 +2153,7 @@
+@@ -2153,7 +2166,7 @@
          host.join().unwrap();
      }
  
@@ -330,7 +356,7 @@
      #[test]
      fn embedded_runtime_without_an_owner_disables_vulkan() {
          let (_graphics, frames) = crate::RenderThreadGraphics::new(|| {});
-@@ -2170,7 +2170,7 @@
+@@ -2170,7 +2183,7 @@
          runtime.shutdown();
      }
  

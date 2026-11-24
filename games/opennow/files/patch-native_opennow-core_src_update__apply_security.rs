@@ -1,6 +1,6 @@
---- native/opennow-core/src/update_apply/security.rs.orig	2026-11-08 13:59:09.000000000 -0800
-+++ native/opennow-core/src/update_apply/security.rs	2026-11-08 19:26:37.238122000 -0800
-@@ -123,6 +123,11 @@ fn preserve_unix_acl(source: &Path, destination: &Path
+--- native/opennow-core/src/update_apply/security.rs.orig
++++ native/opennow-core/src/update_apply/security.rs
+@@ -123,6 +123,11 @@
      Ok(())
  }
  

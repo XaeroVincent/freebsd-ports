@@ -1,6 +1,6 @@
---- opennow-qt/src/app/ApplicationStartup.cpp.orig	2026-11-11 15:50:45.000000000 -0800
-+++ opennow-qt/src/app/ApplicationStartup.cpp	2026-11-12 00:22:55.315613000 -0800
-@@ -133,13 +133,13 @@ static int runApplicationSession(int argc, char *argv[
+--- opennow-qt/src/app/ApplicationStartup.cpp.orig
++++ opennow-qt/src/app/ApplicationStartup.cpp
+@@ -133,13 +133,13 @@
      QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11);
  #elif defined(Q_OS_MACOS)
      QQuickWindow::setGraphicsApi(QSGRendererInterface::Metal);
@@ -16,7 +16,7 @@
  #if !QT_CONFIG(vulkan) || !__has_include(<vulkan/vulkan.h>)
      qCritical("NO_SOFT_RENDERING requires a Qt build with Vulkan support.");
      return EXIT_FAILURE;
-@@ -153,7 +153,7 @@ static int runApplicationSession(int argc, char *argv[
+@@ -153,7 +153,7 @@
      // On macOS, Cocoa must resolve the bundle's appearance-aware icon.
      QGuiApplication::setWindowIcon(applicationWindowIcon());
  #endif
@@ -25,7 +25,7 @@
      LinuxVulkanGraphics::requestDeviceExtensions();
  #endif
      registerStreamVideoItemQmlType();
-@@ -224,7 +224,7 @@ static int runApplicationSession(int argc, char *argv[
+@@ -224,7 +224,7 @@
      );
      QObject::connect(&localization, &Localization::localeChanged,
                       &graphicsDevices, &GraphicsDeviceSelection::choicesChanged);
@@ -34,7 +34,7 @@
      NativeStreamRuntime::initializeDiagnostics();
      LinuxVulkanGraphics::Device vulkanDevice;
  #ifdef NO_SOFT_RENDERING
-@@ -237,7 +237,7 @@ static int runApplicationSession(int argc, char *argv[
+@@ -237,7 +237,7 @@
  #endif
  #ifdef OPENNOW_EMBEDDED_STREAMER
      NativeStreamRuntime nativeStreamRuntime(nullptr,
@@ -43,7 +43,7 @@
                                             vulkanDevice.handle(),
  #else
                                             nullptr,
-@@ -402,7 +402,7 @@ static int runApplicationSession(int argc, char *argv[
+@@ -402,7 +402,7 @@
  #ifdef OPENNOW_EMBEDDED_STREAMER
      streamPresentation.attach(rootWindow);
  #endif

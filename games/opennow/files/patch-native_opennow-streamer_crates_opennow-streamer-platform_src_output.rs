@@ -116,7 +116,18 @@
  pub(crate) struct LinuxHardwareOutput {
      // These fields own resources derived from the SDL Wayland/X11 display.
      // Rust drops fields in declaration order, so keep the presenter and
-@@ -483,7 +483,7 @@
+@@ -470,7 +470,9 @@
+     raw_input: Option<LinuxXInputController>,
+     window: sdl2::video::Window,
+     video: sdl2::VideoSubsystem,
+-    event_pump: sdl2::EventPump,
++    // SDL allows one EventPump per process; release_event_pump hands it back so a fallback
++    // output can create its own while this one is still alive.
++    event_pump: Option<sdl2::EventPump>,
+     audio: AudioDevice<StreamAudioCallback>,
+     output: Arc<OutputBuffers>,
+     external_renderer: bool,
+@@ -483,7 +485,7 @@
      _sdl: sdl2::Sdl,
  }
  
@@ -125,7 +136,57 @@
  impl LinuxHardwareOutput {
      fn initialize(
          output: Arc<OutputBuffers>,
-@@ -841,14 +841,14 @@
+@@ -562,10 +564,14 @@
+             None
+         };
+         let external_relative_motion = raw_input.is_some();
++        // The XInput2 thread also delivers buttons and the wheel, but only while relative mouse
++        // mode is on (see SdlInputCapture::external_mouse_buttons_active). If it failed to
++        // start, SDL keeps every event.
++        let external_mouse_buttons = raw_input.is_some();
+         let mut input_capture = SdlInputCapture::new(
+             capture_input,
+             external_relative_motion,
+-            false,
++            external_mouse_buttons,
+             stream.shortcuts,
+         );
+         input_capture.enable_gamepads(&sdl);
+@@ -576,7 +582,7 @@
+             raw_input,
+             window,
+             video,
+-            event_pump,
++            event_pump: Some(event_pump),
+             audio,
+             output,
+             external_renderer,
+@@ -619,6 +625,10 @@
+         }
+     }
+ 
++    fn release_event_pump(&mut self) {
++        self.event_pump = None;
++    }
++
+     fn stop(&mut self) {
+         self.input_capture.release(&self._sdl, &mut self.window);
+         if let Some(raw_input) = self.raw_input.as_ref() {
+@@ -728,7 +738,12 @@
+         {
+             surface.refresh_ordering()?;
+         }
+-        for event in self.event_pump.poll_iter().collect::<Vec<_>>() {
++        let events = self
++            .event_pump
++            .as_mut()
++            .map(|pump| pump.poll_iter().collect::<Vec<_>>())
++            .unwrap_or_default();
++        for event in events {
+             if matches!(event, sdl2::event::Event::Quit { .. }) {
+                 self.input_capture.release(&self._sdl, &mut self.window);
+                 if let Ok(surface) = self.native_surface.as_mut() {
+@@ -841,14 +856,14 @@
      }
  }
  
@@ -142,7 +203,7 @@
  fn create_linux_presenter(
      window: &sdl2::video::Window,
      width: u32,
-@@ -903,7 +903,7 @@
+@@ -903,7 +918,7 @@
      .map_err(|error| error.to_string())
  }
  
@@ -151,7 +212,7 @@
  fn configure_linux_sdl_video_driver() {
      let native_wayland = std::env::var("OPENNOW_LINUX_NATIVE_WAYLAND")
          .ok()
-@@ -928,7 +928,7 @@
+@@ -928,7 +943,7 @@
      }
  }
  
@@ -160,7 +221,53 @@
  fn linux_display_refresh_hz(
      video: &sdl2::VideoSubsystem,
      window: &sdl2::video::Window,
-@@ -1490,7 +1490,7 @@
+@@ -1024,6 +1039,15 @@
+         }
+     }
+ 
++    /// Whether an external raw-input thread currently owns mouse buttons and the wheel, so SDL
++    /// must not report them too. The Windows raw input controller always does. The Linux
++    /// XInput2 thread only captures while relative mouse mode is on, so SDL keeps ownership in
++    /// absolute mode and whenever that thread did not start.
++    fn external_mouse_buttons_active(&self) -> bool {
++        self.external_mouse_buttons
++            && (!cfg!(any(target_os = "linux", target_os = "freebsd")) || self.relative_mouse)
++    }
++
+     pub(crate) fn enable_gamepads(&mut self, sdl: &sdl2::Sdl) {
+         let Ok(subsystem) = sdl.game_controller() else {
+             return;
+@@ -1288,7 +1312,7 @@
+                 if self.cursor_state == RemoteCursorState::Hidden {
+                     self.enable_relative_mouse(sdl, window);
+                 }
+-                if !self.external_mouse_buttons
++                if !self.external_mouse_buttons_active()
+                     && let Some(button) = sdl_mouse_button(mouse_btn)
+                     && self.pressed_buttons.insert(button)
+                 {
+@@ -1299,8 +1323,9 @@
+                 }
+             }
+             Event::MouseButtonUp { mouse_btn, .. } => {
+-                if !self.external_mouse_buttons
+-                    && let Some(button) = sdl_mouse_button(mouse_btn)
++                // A press SDL reported is always released by SDL, even if the external thread
++                // took ownership while the button was held.
++                if let Some(button) = sdl_mouse_button(mouse_btn)
+                     && self.pressed_buttons.remove(&button)
+                 {
+                     self.captured.push(CapturedInput::MouseButton {
+@@ -1311,7 +1336,7 @@
+             }
+             Event::MouseWheel {
+                 x, y, direction, ..
+-            } if !self.external_mouse_buttons && (x != 0 || y != 0) => {
++            } if !self.external_mouse_buttons_active() && (x != 0 || y != 0) => {
+                 let direction = if direction == sdl2::mouse::MouseWheelDirection::Flipped {
+                     -1
+                 } else {
+@@ -1490,7 +1515,7 @@
          std::mem::take(&mut self.captured)
      }
  
@@ -169,7 +276,7 @@
      pub(crate) const fn relative_mouse_enabled(&self) -> bool {
          self.relative_mouse
      }
-@@ -1549,7 +1549,7 @@
+@@ -1549,7 +1574,7 @@
      texture: Option<Texture>,
      native_surface: Result<NativeSurface, String>,
      input_capture: SdlInputCapture,
@@ -178,7 +285,7 @@
      raw_input: Option<LinuxXInputController>,
      canvas: WindowCanvas,
      texture_size: Option<(u32, u32)>,
-@@ -1558,7 +1558,7 @@
+@@ -1558,7 +1583,7 @@
      audio: AudioDevice<StreamAudioCallback>,
      output: Arc<OutputBuffers>,
      external_renderer: bool,
@@ -187,7 +294,7 @@
      presented_linux_frame: bool,
      visible: bool,
      paused: bool,
-@@ -1574,7 +1574,7 @@
+@@ -1574,7 +1599,7 @@
          if crate::HARDWARE_ONLY {
              return Err(crate::HARDWARE_ONLY_ERROR.to_owned());
          }
@@ -196,7 +303,7 @@
          configure_linux_sdl_video_driver();
          let sdl = sdl2::init().map_err(|error| format!("SDL initialization failed: {error}"))?;
          let video = sdl
-@@ -1590,7 +1590,7 @@
+@@ -1590,7 +1615,7 @@
              .resizable()
              .hidden()
              .metal_view();
@@ -205,7 +312,7 @@
              window_builder.allow_highdpi();
          }
          if !external_renderer {
-@@ -1623,10 +1623,10 @@
+@@ -1623,10 +1648,10 @@
          } else {
              NativeSurface::new(canvas.window())
          };
@@ -218,7 +325,7 @@
          let raw_input = if capture_input && video.current_video_driver() == "x11" {
              match LinuxXInputController::start(output.captured_input()) {
                  Ok(controller) => Some(controller),
-@@ -1640,9 +1640,9 @@
+@@ -1640,14 +1665,15 @@
          } else {
              None
          };
@@ -228,9 +335,16 @@
 -        #[cfg(not(target_os = "linux"))]
 +        #[cfg(not(any(target_os = "linux", target_os = "freebsd")))]
          let external_relative_motion = false;
++        let external_mouse_buttons = external_relative_motion;
          let mut input_capture = SdlInputCapture::new(
              capture_input,
-@@ -1656,7 +1656,7 @@
+             external_relative_motion,
+-            false,
++            external_mouse_buttons,
+             stream.shortcuts,
+         );
+         input_capture.enable_gamepads(&sdl);
+@@ -1656,7 +1682,7 @@
              texture: None,
              native_surface,
              input_capture,
@@ -239,7 +353,7 @@
              raw_input,
              canvas,
              texture_size: None,
-@@ -1665,7 +1665,7 @@
+@@ -1665,7 +1691,7 @@
              audio,
              output,
              external_renderer,
@@ -248,7 +362,7 @@
              presented_linux_frame: false,
              visible: false,
              paused: false,
-@@ -1675,7 +1675,7 @@
+@@ -1675,7 +1701,7 @@
  
      fn start(&mut self, surface: Option<&RenderSurface>) -> Result<(), String> {
          self.paused = false;
@@ -257,7 +371,7 @@
          {
              self.presented_linux_frame = false;
          }
-@@ -1692,7 +1692,7 @@
+@@ -1692,7 +1718,7 @@
          if paused {
              self.input_capture
                  .set_input_paused(true, &self._sdl, self.canvas.window_mut());
@@ -266,7 +380,7 @@
              if let Some(raw_input) = self.raw_input.as_ref() {
                  raw_input.set_enabled(false);
              }
-@@ -1708,7 +1708,7 @@
+@@ -1708,7 +1734,7 @@
      fn stop(&mut self) {
          self.input_capture
              .release(&self._sdl, self.canvas.window_mut());
@@ -275,7 +389,7 @@
          if let Some(raw_input) = self.raw_input.as_ref() {
              raw_input.set_enabled(false);
          }
-@@ -1726,7 +1726,7 @@
+@@ -1726,7 +1752,7 @@
          self.texture = None;
          self.texture_size = None;
          self.texture_format = None;
@@ -284,7 +398,7 @@
          {
              self.presented_linux_frame = false;
          }
-@@ -1734,7 +1734,7 @@
+@@ -1734,7 +1760,7 @@
  
      fn update_surface(&mut self, surface: &RenderSurface) -> Result<(), String> {
          let Some(rect) = surface.rect.filter(|_| surface.visible) else {
@@ -293,7 +407,7 @@
              if let Some(raw_input) = self.raw_input.as_ref() {
                  raw_input.set_enabled(false);
              }
-@@ -1807,7 +1807,7 @@
+@@ -1807,7 +1833,7 @@
                  event,
              );
          }
@@ -302,7 +416,7 @@
          if let Some(raw_input) = self.raw_input.as_ref() {
              raw_input.set_enabled(
                  self.visible
-@@ -1817,18 +1817,18 @@
+@@ -1817,18 +1843,18 @@
          }
          if self.paused || !self.visible {
              self.output.take_video();
@@ -324,7 +438,7 @@
          {
              self.presented_linux_frame = false;
          }
-@@ -1857,7 +1857,7 @@
+@@ -1857,7 +1883,7 @@
          Ok(true)
      }
  
@@ -333,7 +447,7 @@
      fn present_linux_frame(&mut self, frame: LinuxDecodedVideoFrame) -> Result<bool, String> {
          use opennow_streamer_platform_linux::PixelFormat;
  
-@@ -1921,7 +1921,7 @@
+@@ -1921,7 +1947,7 @@
      }
  
      fn backend_label(&self) -> &'static str {
@@ -342,7 +456,7 @@
          if self.presented_linux_frame {
              return "Linux decoder/SDL NV12";
          }
-@@ -2325,7 +2325,7 @@
+@@ -2325,7 +2351,7 @@
      Software(Box<SoftwareOutput>),
      #[cfg(target_os = "windows")]
      Windows(Box<WindowsOutput>),
@@ -351,7 +465,7 @@
      LinuxHardware(Box<LinuxHardwareOutput>),
      #[cfg(target_os = "macos")]
      Mac(Box<crate::macos_backend::MacOutput>),
-@@ -2342,7 +2342,7 @@
+@@ -2342,11 +2368,20 @@
          matches!(self, Self::Mac(_))
      }
  
@@ -360,7 +474,20 @@
      pub(crate) fn is_linux_hardware(&self) -> bool {
          matches!(self, Self::LinuxHardware(_))
      }
-@@ -2387,7 +2387,7 @@
+ 
++    /// Gives back the SDL event pump of an output that is about to be replaced. SDL allows only
++    /// one per process, so a replacement created while this output is alive could not get its own.
++    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
++    pub(crate) fn release_event_pump(&mut self) {
++        if let Self::LinuxHardware(output) = self {
++            output.release_event_pump();
++        }
++    }
++
+     #[cfg(target_os = "windows")]
+     pub(crate) fn is_windows_hardware(&self) -> bool {
+         matches!(self, Self::Windows(output) if output.is_hardware())
+@@ -2387,7 +2422,7 @@
                  .map(Box::new)
                  .map(Self::Windows);
          }
@@ -369,7 +496,7 @@
          if use_linux_hardware {
              return LinuxHardwareOutput::initialize(output, stream, audio_device)
                  .map(Box::new)
-@@ -2405,7 +2405,7 @@
+@@ -2405,7 +2440,7 @@
              Self::Software(output) => output.start(surface),
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.start(surface),
@@ -378,7 +505,7 @@
              Self::LinuxHardware(output) => output.start(surface),
              #[cfg(target_os = "macos")]
              Self::Mac(output) => output.start(surface),
-@@ -2420,7 +2420,7 @@
+@@ -2420,7 +2455,7 @@
              }
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.set_paused(paused),
@@ -387,7 +514,7 @@
              Self::LinuxHardware(output) => {
                  output.set_paused(paused);
                  Ok(())
-@@ -2435,7 +2435,7 @@
+@@ -2435,7 +2470,7 @@
              Self::Software(output) => output.stop(),
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.stop(),
@@ -396,7 +523,7 @@
              Self::LinuxHardware(output) => output.stop(),
              #[cfg(target_os = "macos")]
              Self::Mac(output) => output.stop(),
-@@ -2447,7 +2447,7 @@
+@@ -2447,7 +2482,7 @@
              Self::Software(output) => output.update_surface(surface),
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.update_surface(surface),
@@ -405,7 +532,7 @@
              Self::LinuxHardware(output) => output.update_surface(surface),
              #[cfg(target_os = "macos")]
              Self::Mac(output) => output.update_surface(surface),
-@@ -2466,7 +2466,7 @@
+@@ -2466,7 +2501,7 @@
              }
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.pump(),
@@ -414,7 +541,7 @@
              Self::LinuxHardware(output) => output.pump().map(|presented| {
                  if presented {
                      OutputEvent::Presented("Linux decoder/Vulkan")
-@@ -2484,7 +2484,7 @@
+@@ -2484,7 +2519,7 @@
              Self::Software(output) => output.take_captured_input(),
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.take_captured_input(),
@@ -423,7 +550,7 @@
              Self::LinuxHardware(output) => output.take_captured_input(),
              #[cfg(target_os = "macos")]
              Self::Mac(output) => output.take_captured_input(),
-@@ -2496,7 +2496,7 @@
+@@ -2496,7 +2531,7 @@
              Self::Software(output) => output.update_cursor(bytes),
              #[cfg(target_os = "windows")]
              Self::Windows(output) => output.update_cursor(bytes),
@@ -432,7 +559,7 @@
              Self::LinuxHardware(output) => output.update_cursor(bytes),
              #[cfg(target_os = "macos")]
              Self::Mac(output) => output.update_cursor(bytes),
-@@ -2528,7 +2528,7 @@
+@@ -2528,7 +2563,7 @@
                      }
                  }
              }
@@ -441,7 +568,7 @@
              Self::LinuxHardware(output) => match control {
                  OutputControl::PointerLock => {
                      output
-@@ -3146,7 +3146,7 @@
+@@ -3146,7 +3181,7 @@
  
  #[cfg(test)]
  mod tests {
@@ -450,7 +577,7 @@
      #[test]
      fn hardware_only_rejects_sdl_fallback_before_initialization() {
          let result = super::SoftwareOutput::initialize(
-@@ -3260,7 +3260,7 @@
+@@ -3260,7 +3295,7 @@
      fn audio_buffer_drops_oldest_samples() {
          let output = OutputBuffers {
              video: Mutex::new(None),
@@ -459,7 +586,7 @@
              linux_video: Mutex::new(VecDeque::with_capacity(LINUX_VIDEO_QUEUE_CAPACITY)),
              audio: Mutex::new(AudioPlayoutBuffer::new(4)),
              audio_push_barrier: Mutex::new(None),
-@@ -3292,7 +3292,7 @@
+@@ -3292,7 +3327,7 @@
          assert_eq!(output.take_video().expect("frame").width, 2);
      }
  
@@ -468,3 +595,29 @@
      #[test]
      fn linux_video_queue_smooths_bursts_and_bounds_recovery_latency() {
          use opennow_streamer_platform_linux::StreamFormat;
+@@ -3453,6 +3488,25 @@
+     }
+ 
+     #[test]
++    fn external_mouse_buttons_follow_the_raw_input_owner() {
++        let mut capture =
++            SdlInputCapture::new(true, true, true, StreamShortcutBindings::default());
++        // Windows raw input always owns buttons; the Linux XInput2 thread only in relative mode.
++        capture.relative_mouse = false;
++        assert_eq!(
++            capture.external_mouse_buttons_active(),
++            !cfg!(any(target_os = "linux", target_os = "freebsd"))
++        );
++        capture.relative_mouse = true;
++        assert!(capture.external_mouse_buttons_active());
++        // Without an external owner SDL keeps the buttons in every mode.
++        let mut capture =
++            SdlInputCapture::new(true, false, false, StreamShortcutBindings::default());
++        capture.relative_mouse = true;
++        assert!(!capture.external_mouse_buttons_active());
++    }
++
++    #[test]
+     fn only_predefined_cursor_zero_enters_relative_mouse_mode() {
+         assert_eq!(cursor_state_for_message(0, 0), RemoteCursorState::Hidden);
+         assert_eq!(cursor_state_for_message(0, 1), RemoteCursorState::Visible);

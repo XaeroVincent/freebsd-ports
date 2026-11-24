@@ -1,6 +1,6 @@
 --- opennow-qt/src/streaming/StreamVideoItemInput.cpp.orig
 +++ opennow-qt/src/streaming/StreamVideoItemInput.cpp
-@@ -504,7 +504,7 @@
+@@ -544,7 +544,7 @@
  #if defined(Q_OS_WIN)
      return windowsGameplayVirtualKey(event->key(), event->modifiers(),
                                       event->nativeScanCode(), event->nativeVirtualKey());
@@ -9,7 +9,7 @@
      const auto evdevCode = PhysicalKeyMap::evdevCodeFromNativeScanCode(event->nativeScanCode());
      if (m_keyboardMap && (m_keyboardMap->locale == "sv-SE" || m_keyboardMap->locale == "de-DE")) {
          const auto physical = linuxPhysicalVirtualKey(event->nativeScanCode());
-@@ -539,7 +539,7 @@
+@@ -579,7 +579,7 @@
  {
      auto modifiers = event->modifiers();
      if (event->key() == Qt::Key_AltGr

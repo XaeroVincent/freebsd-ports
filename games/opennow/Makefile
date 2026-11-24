@@ -94,7 +94,6 @@ CARGO_CRATES=	adler2-2.0.1 \
 		base16ct-0.2.0 \
 		base64-0.22.1 \
 		base64ct-1.8.3 \
-		bindgen-0.69.5 \
 		bindgen-0.70.1 \
 		bindgen-0.72.1 \
 		bit-vec-0.9.1 \
@@ -214,7 +213,6 @@ CARGO_CRATES=	adler2-2.0.1 \
 		hex-0.4.3 \
 		hkdf-0.12.4 \
 		hmac-0.12.1 \
-		home-0.5.12 \
 		http-1.5.0 \
 		http-body-1.1.0 \
 		http-body-util-0.1.5 \
@@ -239,14 +237,12 @@ CARGO_CRATES=	adler2-2.0.1 \
 		inout-0.1.4 \
 		ipnet-2.12.1 \
 		is-0.11.0 \
-		itertools-0.12.1 \
 		itertools-0.13.0 \
 		itoa-1.0.18 \
 		jobserver-0.1.35 \
 		js-sys-0.3.104 \
 		keyring-3.6.3 \
 		lazy_static-1.5.0 \
-		lazycell-1.3.0 \
 		libc-0.2.186 \
 		libc-0.2.189 \
 		libdbus-sys-0.2.7 \
@@ -389,8 +385,6 @@ CARGO_CRATES=	adler2-2.0.1 \
 		scuffle-av1-0.1.4 \
 		scuffle-bytes-util-0.1.5 \
 		scuffle-workspace-hack-0.1.0 \
-		sdl2-0.38.0 \
-		sdl2-sys-0.38.0 \
 		sec1-0.7.3 \
 		secret-service-4.0.0 \
 		security-framework-2.11.1 \
@@ -491,7 +485,6 @@ CARGO_CRATES=	adler2-2.0.1 \
 		web-sys-0.3.104 \
 		web-time-1.1.0 \
 		webpki-roots-1.0.9 \
-		which-4.4.2 \
 		wide-1.6.1 \
 		winapi-0.3.9 \
 		winapi-i686-pc-windows-gnu-0.4.0 \
@@ -561,7 +554,8 @@ CARGO_CRATES=	adler2-2.0.1 \
 		zopfli-0.8.3 \
 		zvariant_derive-4.2.0 \
 		zvariant_utils-2.1.0 \
-		zvariant-4.2.0
+		zvariant-4.2.0 \
+		sdl2,sdl2-sys@git+https://github.com/zortos293/rust-sdl2.git?rev=8c812c4a0087eaf664a11a844634200cebe9afb8\#8c812c4a0087eaf664a11a844634200cebe9afb8
 
 CARGO_CARGOLOCK=	${WRKSRC}/native/opennow-streamer/Cargo.lock
 CARGO_CARGOTOML=	${WRKSRC}/native/opennow-streamer/Cargo.toml

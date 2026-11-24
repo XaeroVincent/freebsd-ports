@@ -1,6 +1,6 @@
 --- native/opennow-core/src/update_apply/process.rs.orig
 +++ native/opennow-core/src/update_apply/process.rs
-@@ -217,6 +217,60 @@
+@@ -217,6 +217,62 @@
      Ok(false)
  }
  
@@ -51,7 +51,9 @@
 +        .take(size / std::mem::size_of::<libc::kinfo_proc>())
 +        .filter(|process| process.ki_pid > 0)
 +    {
-+        if capture(process.ki_pid as u32)?.is_some() {
++        // Same rule as the Linux scan: any live member keeps the group running. Not going
++        // through capture() means an unresolvable executable path cannot hide a live process.
++        if process.ki_stat != libc::SZOMB as libc::c_char && process.ki_pgid as u32 == group {
 +            return Ok(true);
 +        }
 +    }
@@ -61,7 +63,7 @@
  #[cfg(windows)]
  struct Job(windows_sys::Win32::Foundation::HANDLE);
  
-@@ -484,6 +538,77 @@
+@@ -484,6 +540,80 @@
          boot_id: String::new(),
      }))
  }
@@ -114,7 +116,9 @@
 +    } < 0
 +    {
 +        let error = std::io::Error::last_os_error();
-+        if matches!(error.raw_os_error(), Some(libc::ESRCH) | Some(libc::ENOENT)) {
++        // Only ESRCH means the process is gone. ENOENT is the kernel failing to resolve
++        // the path of a process that is still running, which must not read as an exit.
++        if error.raw_os_error() == Some(libc::ESRCH) {
 +            return Ok(None);
 +        }
 +        return Err(error.to_string());
@@ -124,7 +128,8 @@
 +        .position(|byte| *byte == 0)
 +        .unwrap_or(path_size);
 +    if end == 0 {
-+        return Ok(None);
++        // The process exists but its executable path is unknown; that is not an exit.
++        return Err(format!("Cannot resolve the executable of process {pid}"));
 +    }
 +    let executable = std::fs::canonicalize(Path::new(std::ffi::OsStr::from_bytes(&path[..end])))
 +        .map_err(|error| error.to_string())?;
