@@ -1,7 +1,7 @@
 PORTNAME?=	nginx
 PORTVERSION=	${NGINX_VERSION}
+PORTREVISION=	1
 .include "version.mk"
-PORTREVISION=	2
 CATEGORIES=	www
 MASTER_SITES=	https://nginx.org/download/
 PKGNAMESUFFIX?=	-devel
