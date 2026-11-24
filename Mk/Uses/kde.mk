@@ -5,7 +5,7 @@
 #
 # 5:		Depend on KDE Frameworks 5 components and variables.
 # 6:		Depend on KDE Frameworks 6 components and variables.
-#		The version may be omitted when all required components are
+#		The version should be omitted when all required components are
 #		indifferent to the Frameworks version, e.g. ecm or breeze-icons.
 #
 # Variables that can be set by a port:
@@ -100,9 +100,9 @@ PORTSCOUT=		limit:^6\.6\.
 .  elif ${CATEGORIES:Mkde-plasma}
 _PLASMA_VER=		6
 CONFLICTS_INSTALL+=	plasma6lts-${PORTNAME}-6.*
-.     if ${KDE_PLASMA_DEFAULT} != 6 && empty(_USE_PLASMA_LATEST:M${PORTNAME})
+.    if ${KDE_PLASMA_DEFAULT} != 6 && empty(_USE_PLASMA_LATEST:M${PORTNAME})
 IGNORE=		cannot be installed: Plasma 6 LTS is set a as default distribution
-.     endif
+.    endif
 .  endif
 
 .  if !${_PLASMA_SUPPORTED:M${_PLASMA_VER}}
@@ -259,6 +259,9 @@ MASTER_SITES?=		KDE/${KDE_FRAMEWORKS_BRANCH}/frameworks/${KDE_FRAMEWORKS_VERSION
 .        endif
 DIST_SUBDIR?=		KDE/frameworks/${KDE_FRAMEWORKS_VERSION}
 PORTSCOUT=		limit:^5\.
+# https://bugs.freebsd.org/299313
+DEPRECATED=		Depends on unsupported Qt 5
+EXPIRATION_DATE=	2026-12-31
 .      else # KDE Frameworks 6
 MASTER_SITES?=		KDE/${KDE_FRAMEWORKS_BRANCH}/frameworks/${KDE_FRAMEWORKS_VERSION:R}
 DIST_SUBDIR=		KDE/frameworks/${KDE_FRAMEWORKS_VERSION:R}

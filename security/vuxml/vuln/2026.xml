@@ -1,3 +1,240 @@
+  <vuln vid="cb0b8278-b308-4b8d-82b3-4e8235a7aaa2">
+    <topic>ruby -- heap-based buffer overflow</topic>
+    <affects>
+      <package>
+	<name>ruby33</name>
+	<range><ge>3.3,1</ge><lt>3.3.14,1</lt></range>
+      </package>
+      <package>
+	<name>ruby34</name>
+	<range><ge>3.4.0,1</ge><lt>3.4.13,1</lt></range>
+      </package>
+      <package>
+	<name>ruby40</name>
+	<range><ge>4.0.0,1</ge><lt>4.0.10,1</lt></range>
+      </package>
+    </affects>
+    <description>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+	<p>CVE-2026-132825: Ruby before 3.3.14, 3.4.13, and 4.0.10 has a heap-
+	  based buffer overflow during case conversion. One byte can be
+	  written outside a buffer for, for example, ISO-8859-1 or
+	  Windows-1252.</p>
+      </body>
+    </description>
+    <references>
+      <cvename>CVE-2026-132825</cvename>
+      <url>https://nvd.nist.gov/vuln/detail/CVE-2026-132825</url>
+    </references>
+    <dates>
+      <discovery>2026-11-19</discovery>
+      <entry>2026-11-23</entry>
+    </dates>
+  </vuln>
+
+  <vuln vid="f3974045-b3af-403d-b169-b3c830a93fc4">
+    <topic>ruby -- multiple vulnerabilities</topic>
+    <affects>
+      <package>
+	<name>ruby33</name>
+	<range><lt>3.3.13,1</lt></range>
+      </package>
+      <package>
+	<name>ruby34</name>
+	<range><lt>3.4.12,1</lt></range>
+      </package>
+      <package>
+	<name>ruby40</name>
+	<range><lt>4.0.9,1</lt></range>
+      </package>
+    </affects>
+    <description>
+	<body xmlns="http://www.w3.org/1999/xhtml">
+	  <p>k0kubun reports:</p>
+	  <blockquote cite="https://www.ruby-lang.org/en/news/2026/10/23/regexp-fixes-for-gitlab-cves/">
+	  <ul>
+	    <li>CVE-2026-89078: Double Free issue in Regular Expression Parser</li>
+	    <li>CVE-2026-93577: Integer Overflow issue in Regular Expression Compiler</li>
+	    <li>CVE-2026-97229: Integer Overflow issue in CI/CD Regular Expression Compiler</li>
+	    <li>CVE-2026-110264: Integer Overflow issue in Regular Expression Compiler</li>
+	  </ul>
+	  </blockquote>
+	</body>
+    </description>
+    <references>
+      <cvename>CVE-2026-89078</cvename>
+      <cvename>CVE-2026-93577</cvename>
+      <cvename>CVE-2026-97229</cvename>
+      <cvename>CVE-2026-110264</cvename>
+      <url>https://www.ruby-lang.org/en/news/2026/10/23/regexp-fixes-for-gitlab-cves/</url>
+    </references>
+    <dates>
+      <discovery>2026-10-23</discovery>
+      <entry>2026-11-23</entry>
+    </dates>
+  </vuln>
+
+  <vuln vid="16776118-a5b5-4295-807e-17b62c83bcc5">
+    <topic>rubygem-activestorage -- arbitrary file write and read</topic>
+    <affects>
+      <package>
+	<name>rubygem-activestorage81</name>
+	<range><ge>8.1</ge><lt>8.1.4.1</lt></range>
+      </package>
+      <package>
+	<name>rubygem-activestorage80</name>
+	<range><lt>8.0.5.2</lt></range>
+      </package>
+    </affects>
+    <description>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+	  <p>flavorjones reports:</p>
+	  <blockquote cite="https://github.com/rails/rails/security/advisories/GHSA-f3w6-w445-fwh9">
+	  <p>A Rails application that processes attachments with
+	  ImageMagick may allow an unauthenticated attacker to write
+	  arbitrary files on the server and, when attachments are
+	  stored with the Disk service, to read arbitrary files
+	  readable by the application process. Those files typically
+	  include secret_key_base and credentials for external
+	  systems, which may in turn allow escalation to remote
+	  code execution or lateral movement to those systems.</p>
+	  </blockquote>
+	</body>
+    </description>
+    <references>
+      <cvename>CVE-2026-122006</cvename>
+      <url>https://nvd.nist.gov/vuln/detail/CVE-2026-122006</url>
+      <url>https://github.com/rails/rails/security/advisories/GHSA-f3w6-w445-fwh9</url>
+    </references>
+    <dates>
+      <discovery>2026-11-03</discovery>
+      <entry>2026-11-23</entry>
+    </dates>
+  </vuln>
+
+  <vuln vid="b8fc42ea-e738-11f1-b58b-8447094a420f">
+    <topic>Roundcube mail -- Multiple vulnerabilities</topic>
+    <affects>
+      <package>
+	<name>roundcube-php82</name>
+	<name>roundcube-php83</name>
+	<name>roundcube-php84</name>
+	<name>roundcube-php85</name>
+	<name>roundcube-php85</name>
+	<range><lt>1.7.7,1</lt></range>
+      </package>
+    </affects>
+    <description>
+	<body xmlns="http://www.w3.org/1999/xhtml">
+	<p>The Roundcube mail project reports:</p>
+	<blockquote cite="https://roundcube.net/news/2026/11/23/security-updates-1.6.22-and-1.7.7">
+	  <p>Check link for details.</p>
+	</blockquote>
+	</body>
+    </description>
+    <references>
+      <url>https://roundcube.net/news/2026/11/23/security-updates-1.6.22-and-1.7.7</url>
+    </references>
+    <dates>
+      <discovery>2026-11-23</discovery>
+      <entry>2026-11-23</entry>
+    </dates>
+  </vuln>
+
+  <vuln vid="9d113e97-e6db-11f1-8ead-93299b7f89e8">
+    <topic>gpgme -- double free vulnerability</topic>
+    <affects>
+      <package>
+	<name>gpgme</name>
+	<range><lt>2.3.0</lt></range>
+      </package>
+    </affects>
+    <description>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+	<p>GnuPG reports:</p>
+	<blockquote cite="https://static.dev.gnupg.org/T8557">
+	  <p>By using an OpenPGP key containing a crafted very long user id it
+	    is possible to trigger a double free. This double free can be used
+	    exfiltrate data from applications by sending for example signed
+	    data. Exploiting this bug to mount an Remote Code Execution attack
+	    (RCE) can't be ruled out.</p>
+	  <p>The root cause for this bug are two GPGME internal functions to
+	    read the status lines and key listings from gpg. Initially a buffer
+	    of 1024 bytes is allocated which is reallocated if more space is
+	    required. When reallocating the pointer to the new buffer, it is used
+	    by the function, but it is only assigned back to the context object
+	    at the end of the function. Thus if the function returns early due
+	    to a read error or other events, the context is not updated and
+	    keeps the stale pointer to the freed memory. Eventually, the context
+	    is released and the memory is freed a second time. Due to other
+	    allocations in between the common double free checks of memory
+	    allocators may not be triggered.</p>
+	</blockquote>
+      </body>
+    </description>
+    <references>
+      <cvename>CVE-2026-129975</cvename>
+      <url>https://static.dev.gnupg.org/T8557</url>
+      <url>https://lists.gnupg.org/pipermail/gnupg-announce/2026q4/000517.html</url>
+    </references>
+    <dates>
+      <discovery>2026-11-20</discovery>
+      <entry>2026-11-22</entry>
+    </dates>
+  </vuln>
+
+  <vuln vid="0da120f6-e687-11f1-aceb-3c7c3fba4204">
+    <topic>Blocky -- multiple vulnerabilities</topic>
+    <affects>
+	<package>
+	  <name>blocky</name>
+	  <range><lt>0.37.0</lt></range>
+	</package>
+    </affects>
+    <description>
+	<body xmlns="http://www.w3.org/1999/xhtml">
+	<p>Blocky Project reports:</p>
+	<blockquote cite="https://github.com/0xERR0R/blocky/releases/tag/v0.37.0">
+	  <p>Thanks to <a href="https://github.com/kevinpark1217">@kevinpark1217</a> for reporting these seven
+	     findings, fixing them, and contributing regression tests. If you use Blocky’s built-in validator
+	     (dnssec.validate: true), upgrade to v0.37.0. Six fixes affect earlier releases; the seventh hardens
+	     code introduced during development of v0.37.0.</p>
+	  <ul>
+	    <li>Chain of trust (GHSA-rfc7-q64c-hj2f): DS and DNSKEY records must belong to the zone being validated.
+		If Blocky cannot complete validation beneath a trust anchor, it returns SERVFAIL rather than serving
+		unchecked data.</li>
+	    <li>Complete answers (GHSA-8mfq-h5hh-mqf2): Blocky checks that the answer matches the question and response
+		code. A signed alias leading to unsigned data no longer marks the whole answer as authenticated (AD).</li>
+	    <li>Authority for negative answers (GHSA-6fgw-qmpq-vwxp): Proof that a name or record does not exist must
+		come from the zone responsible for it. A signature from another zone is not sufficient.</li>
+	    <li>Wildcard and denial proofs (GHSA-mv8x-2h8p-g3wh): Blocky now requires complete proofs for wildcard answers,
+		nonexistent names (NXDOMAIN), and missing record types (NODATA), including checking for aliases where required.</li>
+	    <li>NSEC3 Opt-Out (GHSA-583r-m4vv-q43p): Blocky requires a complete proof from the parent before treating a delegation
+		as unsigned.</li>
+	    <li>RSA signature failures (GHSA-g35c-mff8-4w2w): A failed signature under a supported algorithm is rejected rather than
+		treated as evidence that the data is unsigned.</li>
+	    <li>Validation work limits (development builds only; GHSA-vgm3-vqcv-4hv6): Blocky bounds RSA exponent size and
+		signature-verification work per query. No prior release shipped the large-exponent fallback affected by this finding.</li>
+	  </ul>
+	</blockquote>
+	</body>
+    </description>
+    <references>
+      <url>https://github.com/0xERR0R/blocky/releases/tag/v0.37.0</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-rfc7-q64c-hj2f</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-8mfq-h5hh-mqf2</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-6fgw-qmpq-vwxp</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-mv8x-2h8p-g3wh</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-583r-m4vv-q43p</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-g35c-mff8-4w2w</url>
+      <url>https://github.com/0xERR0R/blocky/security/advisories/GHSA-vgm3-vqcv-4hv6</url>
+    </references>
+    <dates>
+      <discovery>2026-11-21</discovery>
+      <entry>2026-11-22</entry>
+    </dates>
+  </vuln>
+
   <vuln vid="15b98472-e624-11f1-9eae-18cf5efc6bb4">
     <topic>openvoxdb -- An authenticated node can write another node's factset through the PuppetDB facts terminus</topic>
     <affects>
