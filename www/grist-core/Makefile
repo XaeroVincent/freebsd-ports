@@ -9,7 +9,7 @@ MAINTAINER=	mfechner@FreeBSD.org
 COMMENT=	Modern relational spreadsheet running in browser, Community Edition
 WWW=		https://github.com/gristlabs/grist-core
 
-LICENSE=	APACHE20
+LICENSE=	Apache-2.0
 LICENSE_FILE=	${WRKSRC}/LICENSE.txt
 
 ONLY_FOR_ARCHS=	amd64
@@ -22,7 +22,9 @@ BUILD_DEPENDS=	${MY_DEPENDS} \
 RUN_DEPENDS=	${MY_DEPENDS} \
 		${PYTHON_PKGNAMEPREFIX}pip>=22.2.2:devel/py-pip@${PY_FLAVOR}
 
-USES=		compiler:c++17-lang gmake nodejs python shebangfix
+USES=		compiler:c++17-lang cpe gmake nodejs python shebangfix
+
+CPE_VENDOR=	getgrist
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	gristlabs
